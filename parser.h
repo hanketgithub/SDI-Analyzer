@@ -10,3 +10,5 @@ typedef enum {
     EAV_TYPE_ACTIVE,
 } EAV_TYPE_E;
 
+int parse(uint8_t *sdi_buf, size_t sdi_buf_size);
+

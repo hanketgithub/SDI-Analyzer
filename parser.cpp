@@ -18,15 +18,37 @@ uint8_t EAV_active[] = { 0x03, 0xff, 0x00, 0x00, 0x00, 0x00, 0x02, 0x74 };
 uint8_t SAV_nonactive[] = { 0x03, 0xff, 0x00, 0x00, 0x00, 0x00, 0x02, 0xAC };
 uint8_t EAV_nonactive[] = { 0x03, 0xff, 0x00, 0x00, 0x00, 0x00, 0x02, 0xDB };
 
+
+
+// Not sure if we can compute the width, since the layout of a stride can be varies regarding
+// to resolution
+uint32_t stride_to_width
+(
+    uint32_t stride
+)
+{
+    switch (stride) {
+        case 8800:
+        {
+            return 1920;
+        }
+        default:
+        {
+            return 0;
+        }
+    }
+}
+
+
 string savType2Str(SAV_TYPE_E eType) {
     switch (eType) {
         case SAV_TYPE_NON_ACTIVE:
         {
-            return "sav non active";
+            return "SAV Non Active";
         }
         case SAV_TYPE_ACTIVE:
         {
-            return "sav active";
+            return "SAV Active";
         }
         default:
         {
@@ -40,11 +62,11 @@ string eavType2Str(EAV_TYPE_E eType) {
     switch (eType) {
         case EAV_TYPE_NON_ACTIVE:
         {
-            return "eav non active";
+            return "EAV Non Active";
         }
         case EAV_TYPE_ACTIVE:
         {
-            return "eav active";
+            return "EAV Active";
         }
         default:
         {
@@ -64,7 +86,8 @@ void buildMuxPattern(uint8_t mux[], uint8_t pattern[], size_t pattern_len) {
   }
 }
 
-int parse(uint8_t *sdi_buf, size_t sdi_buf_size) {
+int parse(uint8_t *sdi_buf, size_t sdi_buf_size)
+{
   uint8_t *p = sdi_buf;
 
   size_t len = sizeof(SAV_active);
@@ -157,13 +180,14 @@ int parse(uint8_t *sdi_buf, size_t sdi_buf_size) {
 
   for (size_t i = 0; i < vec_sav.size(); i++) {
     printf("[%lu] Offset=0x%08llx distance=%lld ", i, vec_sav[i][0], vec_sav[i][1]);
-    cout << "type=" << savType2Str( (SAV_TYPE_E) vec_sav[i][2] ) << endl;
+    cout << "type='" << savType2Str( (SAV_TYPE_E) vec_sav[i][2] ) << "'" << endl;
   }
   for (size_t i = 0; i < vec_eav.size(); i++) {
     printf("[%lu] Offset=0x%08llx distance=%lld ", i, vec_eav[i][0], vec_eav[i][1]);
-    cout << "type=" << eavType2Str( (EAV_TYPE_E) vec_eav[i][2] ) << endl;
+    cout << "type='" << eavType2Str( (EAV_TYPE_E) vec_eav[i][2] ) << "'" << endl;
   }
 
+  cout << "Image width is : " << stride_to_width(vec_sav.back()[1]) << endl;
 
   return 0;
 }
