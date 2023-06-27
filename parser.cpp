@@ -86,7 +86,7 @@ void buildMuxPattern(uint8_t mux[], uint8_t pattern[], size_t pattern_len) {
   }
 }
 
-int parse(uint8_t *sdi_buf, size_t sdi_buf_size)
+int parse(uint8_t *sdi_buf, size_t sdi_buf_size, vector< SAV_T > &savs, vector< EAV_T > &eavs)
 {
   uint8_t *p = sdi_buf;
 
@@ -125,69 +125,67 @@ int parse(uint8_t *sdi_buf, size_t sdi_buf_size)
   }
   printf("\n");
 
-  vector< vector<LL> > vec_sav;
-  vector< vector<LL> > vec_eav;
   for (size_t i = 0; i < sdi_buf_size; i++) {
     if (memcmp(p, sav_mux_nonactive, sizeof(sav_mux_nonactive)) == 0) {
-      if (vec_sav.size() == 0) {
-        vec_sav.push_back( { p - sdi_buf,  -1, SAV_TYPE_NON_ACTIVE } );        
+      if (savs.size() == 0) {
+        savs.push_back( { (uint64_t) (p - sdi_buf), 0, SAV_TYPE_NON_ACTIVE } );        
       }
       else {
-        vector<LL> &prev = vec_sav.back();
-        LL offset = p - sdi_buf;
-        LL prev_offset = prev[0];
-        vec_sav.push_back( { offset, offset - prev_offset, SAV_TYPE_NON_ACTIVE } );
+        SAV_T &prev = savs.back();
+        uint64_t offset = (uint64_t) (p - sdi_buf);
+        uint64_t prev_offset = prev.offset;
+        savs.push_back( { offset, offset - prev_offset, SAV_TYPE_NON_ACTIVE } );
       }
     }
 
     if (memcmp(p, eav_mux_nonactive, sizeof(eav_mux_nonactive)) == 0) {
-      if (vec_eav.size() == 0) {
-        vec_eav.push_back( { p - sdi_buf,  -1, EAV_TYPE_NON_ACTIVE } ); 
+      if (eavs.size() == 0) {
+        eavs.push_back( { (uint64_t) (p - sdi_buf),  0, EAV_TYPE_NON_ACTIVE } ); 
       }
       else {
-        vector<LL> &prev = vec_eav.back();
-        LL offset = p - sdi_buf;
-        LL prev_offset = prev[0];
-        vec_eav.push_back( {offset, offset - prev_offset, EAV_TYPE_NON_ACTIVE } );
+        EAV_T &prev = eavs.back();
+        uint64_t offset = (uint64_t) (p - sdi_buf);
+        uint64_t prev_offset = prev.offset;
+        eavs.push_back( { offset, offset - prev_offset, EAV_TYPE_NON_ACTIVE } );
       }
     }
 
     if (memcmp(p, sav_mux_active, sizeof(sav_mux_active)) == 0) {
-      if (vec_sav.size() == 0) {
-        vec_sav.push_back( { p - sdi_buf,  -1, SAV_TYPE_ACTIVE } );        
+      if (savs.size() == 0) {
+        savs.push_back( { (uint64_t) (p - sdi_buf),  0, SAV_TYPE_ACTIVE } );        
       }
       else {
-        vector<LL> &prev = vec_sav.back();
-        LL offset = p - sdi_buf;
-        LL prev_offset = prev[0];
-        vec_sav.push_back( { offset, offset - prev_offset, SAV_TYPE_ACTIVE } );
+        SAV_T &prev = savs.back();
+        uint64_t offset = (uint64_t) (p - sdi_buf);
+        uint64_t prev_offset = prev.offset;
+        savs.push_back( { offset, offset - prev_offset, SAV_TYPE_ACTIVE } );
       }
     }
 
     if (memcmp(p, eav_mux_active, sizeof(eav_mux_active)) == 0) {
-      if (vec_eav.size() == 0) {
-        vec_eav.push_back( { p - sdi_buf,  -1, EAV_TYPE_ACTIVE } ); 
+      if (eavs.size() == 0) {
+        eavs.push_back( { (uint64_t) (p - sdi_buf), 0, EAV_TYPE_ACTIVE } ); 
       }
       else {
-        vector<LL> &prev = vec_eav.back();
-        LL offset = p - sdi_buf;
-        LL prev_offset = prev[0];
-        vec_eav.push_back( {offset, offset - prev_offset, EAV_TYPE_ACTIVE } );
+        EAV_T &prev = eavs.back();
+        uint64_t offset = (uint64_t) (p - sdi_buf);
+        uint64_t prev_offset = prev.offset;
+        eavs.push_back( { offset, offset - prev_offset, EAV_TYPE_ACTIVE } );
       }
     }
     p++;
   }
 
-  for (size_t i = 0; i < vec_sav.size(); i++) {
-    printf("[%lu] Offset=0x%08llx distance=%lld ", i, vec_sav[i][0], vec_sav[i][1]);
-    cout << "type='" << savType2Str( (SAV_TYPE_E) vec_sav[i][2] ) << "'" << endl;
+  for (size_t i = 0; i < savs.size(); i++) {
+    printf("[%lu] Offset=0x%08lx distance=%ld ", i, savs[i].offset, savs[i].distance);
+    cout << "type='" << savType2Str( (SAV_TYPE_E) savs[i].type ) << "'" << endl;
   }
-  for (size_t i = 0; i < vec_eav.size(); i++) {
-    printf("[%lu] Offset=0x%08llx distance=%lld ", i, vec_eav[i][0], vec_eav[i][1]);
-    cout << "type='" << eavType2Str( (EAV_TYPE_E) vec_eav[i][2] ) << "'" << endl;
+  for (size_t i = 0; i < eavs.size(); i++) {
+    printf("[%lu] Offset=0x%08lx distance=%ld ", i, eavs[i].offset, eavs[i].distance);
+    cout << "type='" << eavType2Str( (EAV_TYPE_E) eavs[i].type ) << "'" << endl;
   }
 
-  cout << "Image width is : " << stride_to_width(vec_sav.back()[1]) << endl;
+  cout << "Image width is : " << stride_to_width(savs.back().distance) << endl;
 
   return 0;
 }

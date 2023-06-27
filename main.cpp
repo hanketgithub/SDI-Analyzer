@@ -18,13 +18,23 @@
 #include <unistd.h>
 
 #include <iostream>
+#include <vector>
+
 
 #include "parser.h"
 
-#define SDI_BUF_SIZE    1000000
+//#define SDI_BUF_SIZE    1000000
+
+// With blanking lines
+//#define SDI_BUF_SIZE    (8800 * 1125)
+// Without blanking lines
+#define SDI_BUF_SIZE    (8800 * 1080)
 
 
 using namespace std;
+
+typedef long long LL;
+
 
 int main(int argc, char *argv[])
 {
@@ -53,12 +63,18 @@ int main(int argc, char *argv[])
 
     fprintf(stderr, "Processing: ");
 
+    vector< SAV_T > savs;
+    vector< EAV_T > eavs;
     do
     {
         rd_sz = read(ifd, sdi_buf, SDI_BUF_SIZE);
         if (rd_sz == SDI_BUF_SIZE)
         {
-            parse(sdi_buf, SDI_BUF_SIZE);
+            parse(sdi_buf, SDI_BUF_SIZE, savs, eavs);
+
+            for (auto sav : savs) {
+                
+            }
         }
         else
         {
